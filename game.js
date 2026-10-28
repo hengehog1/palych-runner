@@ -288,7 +288,7 @@
   function drawZina(x, y, s, t, swing) {
     // Зина (арт ChatGPT) гонится сзади: видна со спины, тапки и скалка над головой
     var z = IMG.zina; if (!z || !z[0]) return;
-    var ph = Math.sin(t * 9), im = z[ph > 0 ? 0 : 1], h = 270 * s, w = h * im.width / im.height;
+    var ph = Math.sin(t * 9), im = IMG.zinaRun ? IMG.zinaRun[ph > 0 ? 0 : 1] : z[ph > 0 ? 0 : 1], h = 270 * s, w = h * im.width / im.height;
     var bob = Math.abs(ph) * 7, sq = 1 + Math.sin(t * 18) * .02;
     soft(ctx, x, y + 8, 60 * s, .45);
     ctx.save(); ctx.translate(x, y + 8 - bob); ctx.rotate(ph * .045 + (swing || 0)); ctx.scale(1 / sq, sq);
@@ -811,7 +811,7 @@
   function drawPalych(px, py) {
     var st = S.stepT, play = S.mode === 'play' || S.mode === 'won';
     var cs = IMG.cos[P.costume]; if (!cs || !cs.ok) cs = IMG.cos.classic; if (!cs) return; var img = cs.b[cs.b.length > 1 && play && Math.sin(st) < 0 ? 1 : 0];
-    if (play && cs.run) img = cs.run[((Math.round(st / (Math.PI / 2)) % 4) + 4) % 4];  // проход, шаг левой, проход, шаг правой
+    if (play && cs.run) img = cs.run.length === 4 ? cs.run[((Math.round(st / (Math.PI / 2)) % 4) + 4) % 4] : cs.run[Math.sin(st) < 0 ? 1 : 0];  // шаг левой / шаг правой
     var h = img.height * 135 / 560, w = img.width * 135 / 560, jump = S.jumpH;
     if (S.fall && S.fall.t < S.fall.dur) { drawFall(px, py, img, w, h); return; }
     var bob = play ? Math.abs(Math.sin(st)) * 7 : 0, lean = (S.lane - S.laneF) * .3, sway = play ? Math.sin(st) * .05 : 0;
@@ -1130,11 +1130,11 @@
   var cosLoads = COSTUMES.map(function (c) {
     if (!c.art) { IMG.cos[c.id] = { ok: false, b: [] }; return Promise.resolve(); }
     return Promise.all([load('assets/costumes/' + c.id + '_front.png'), load('assets/costumes/' + c.id + '_back.png'), c.id === 'classic' ? load('assets/costumes/classic_back2.png') : Promise.resolve(null),
-      c.id === 'classic' ? Promise.all([0, 1, 2, 3].map(function (i) { return load('assets/costumes/classic_run' + i + '.png'); })) : Promise.resolve(null)]).then(function (r) {
+      Promise.all((c.id === 'classic' ? [0, 1, 2, 3] : [0, 1]).map(function (i) { return load('assets/costumes/' + c.id + '_run' + i + '.png'); }))]).then(function (r) {
       IMG.cos[c.id] = { f: r[0], b: [r[1]].concat(r[2] ? [r[2]] : []), ok: !!(r[0] && r[1]) }; if (r[3] && r[3].every(Boolean)) IMG.cos[c.id].run = r[3]; if (r[1]) IMG.cos[c.id].legs = splitLegs(r[1], c.id);
     });
   });
-  Promise.all(cosLoads.concat([load('assets/cat.png').then(function (i) { IMG.cat = i; }), Promise.all([load('assets/zina_back1.png'), load('assets/zina_back2.png'), load('assets/zina_front.png')]).then(function (r) { IMG.zina = r; if (r[0]) IMG.zinaLegs = splitLegs(r[0], 'zina'); }), fontP])).then(function () { buildSprites(); heroUpdate(); });
+  Promise.all(cosLoads.concat([load('assets/cat.png').then(function (i) { IMG.cat = i; }), Promise.all([load('assets/zina_back1.png'), load('assets/zina_back2.png'), load('assets/zina_front.png'), load('assets/zina_run0.png'), load('assets/zina_run1.png')]).then(function (r) { IMG.zina = r.slice(0, 3); if (r[3] && r[4]) IMG.zinaRun = [r[3], r[4]]; if (r[0]) IMG.zinaLegs = splitLegs(r[0], 'zina'); }), fontP])).then(function () { buildSprites(); heroUpdate(); });
   requestAnimationFrame(frame);
 
   window.__game = {
