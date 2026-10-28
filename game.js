@@ -284,38 +284,13 @@
 
   // ---------- Зина (рисованная) ----------
   function drawZina(x, y, s, t, swing) {
-    // Зина гонится сзади: мы видим её спину
-    ctx.save(); ctx.translate(x, y); ctx.scale(s, s);
-    var b = Math.sin(t * 9) * 3;
-    // ноги в тапках
-    [-22, 22].forEach(function (lx, i) { var k = Math.sin(t * 9 + i * Math.PI) * 6; rrp(ctx, lx - 11, -6 + k, 22, 44, 8); fs(ctx, '#e8b99c', 3); el(ctx, lx, 40 + k, 17, 8, '#7a4a8c', 2.5); });
-    // халат сзади
-    ctx.beginPath(); ctx.moveTo(-72, 4); ctx.quadraticCurveTo(-84, -120, -44, -150 + b); ctx.lineTo(44, -150 + b); ctx.quadraticCurveTo(84, -120, 72, 4); ctx.closePath();
-    fs(ctx, grad(ctx, -72, 0, 72, 0, '#9a6fc6', '#5e3a8a', '#8a58b8'), 3.5);
-    ctx.fillStyle = 'rgba(255,220,240,.85)'; [[-40, -60], [-20, -100], [30, -70], [48, -110], [0, -40], [-55, -110], [14, -125], [-30, -25], [40, -30]].forEach(function (p) { ctx.beginPath(); ctx.arc(p[0], p[1], 5, 0, 7); ctx.fill(); });
-    ctx.strokeStyle = 'rgba(40,10,60,.4)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(0, -148 + b); ctx.lineTo(0, -4); ctx.stroke();
-    // пояс с бантом
-    rrp(ctx, -50, -78, 100, 10, 4); fs(ctx, '#ffd84a', 2.5); ctx.beginPath(); ctx.moveTo(0, -73); ctx.lineTo(-18, -88); ctx.lineTo(-18, -60); ctx.closePath(); fs(ctx, '#ffd84a', 2); ctx.beginPath(); ctx.moveTo(0, -73); ctx.lineTo(18, -88); ctx.lineTo(18, -60); ctx.closePath(); fs(ctx, '#ffd84a', 2);
-    // левая рука на боку
-    ctx.save(); ctx.translate(-62, -122 + b); ctx.rotate(.5); rrp(ctx, -11, 0, 22, 62, 11); fs(ctx, '#8458b3', 3); el(ctx, 0, 64, 10, 10, '#f3b79a', 2.5); ctx.restore();
-    // шея и голова со спины
-    el(ctx, 0, -150 + b, 17, 13, '#e8a584', 3);
-    el(ctx, -41, -188 + b, 7, 10, '#f0b497', 2.5); el(ctx, 41, -188 + b, 7, 10, '#f0b497', 2.5);
-    el(ctx, 0, -190 + b, 42, 40, grad(ctx, -40, -230, 40, -150, '#d4cfdc', '#9d97ab'), 3.5);
-    ctx.fillStyle = '#b9b3c4'; [[-36, -170], [-22, -156], [0, -152], [22, -156], [36, -170]].forEach(function (p) { ctx.beginPath(); ctx.arc(p[0], p[1] + b, 11, 0, 7); ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = OUT; ctx.stroke(); });
-    // косынка и узел
-    ctx.beginPath(); ctx.moveTo(-43, -185 + b); ctx.quadraticCurveTo(0, -246 + b, 43, -185 + b); ctx.quadraticCurveTo(0, -170 + b, -43, -185 + b); fs(ctx, grad(ctx, 0, -246, 0, -170, '#ff6a5c', '#c4281e'), 3);
-    ctx.fillStyle = '#ffe9e0'; [[-22, -200], [8, -214], [26, -194], [-6, -184]].forEach(function (p) { ctx.beginPath(); ctx.arc(p[0], p[1] + b, 3.2, 0, 7); ctx.fill(); });
-    ctx.beginPath(); ctx.moveTo(0, -176 + b); ctx.lineTo(-16, -158 + b); ctx.lineTo(-4, -154 + b); ctx.closePath(); fs(ctx, '#d9382a', 2.5); ctx.beginPath(); ctx.moveTo(0, -176 + b); ctx.lineTo(16, -158 + b); ctx.lineTo(4, -154 + b); ctx.closePath(); fs(ctx, '#d9382a', 2.5);
-    // правая рука поднята вверх-вбок, скалка в кулаке над головой
-    ctx.save(); ctx.translate(58, -136 + b); ctx.rotate(Math.PI + .55 + Math.sin(t * 8) * .3 + (swing || 0)); rrp(ctx, -11, 0, 22, 60, 11); fs(ctx, '#8458b3', 3);
-    ctx.translate(0, 62); ctx.rotate(-1.15);
-    rrp(ctx, -9, -44, 18, 88, 9); fs(ctx, grad(ctx, -9, 0, 9, 0, '#e9c58a', '#a8743c', '#d4a35e'), 3); rrp(ctx, -4, -60, 8, 18, 4); fs(ctx, '#a8743c', 2.5); rrp(ctx, -4, 42, 8, 18, 4); fs(ctx, '#a8743c', 2.5);
-    el(ctx, 0, 0, 12, 12, '#f3b79a', 2.5);
-    ctx.restore();
-    // реплика
-    ctx.save(); ctx.translate(-70, -262 + b); rrp(ctx, -50, -16, 100, 32, 12); fs(ctx, '#fffdf2', 2.5); ctx.beginPath(); ctx.moveTo(20, 15); ctx.lineTo(34, 30); ctx.lineTo(36, 14); ctx.fillStyle = '#fffdf2'; ctx.fill(); tx(ctx, 'ПАЛЫЧ!!', 0, 0, 20, '#c1121f', null, 900); ctx.restore();
-    ctx.restore();
+    // Зина (арт ChatGPT) гонится сзади: видна со спины, тапки и скалка над головой
+    var z = IMG.zina; if (!z || !z[0]) return;
+    var ph = Math.sin(t * 9), im = z[ph > 0 ? 0 : 1], h = 270 * s, w = h * im.width / im.height;
+    var bob = Math.abs(ph) * 7, sq = 1 + Math.sin(t * 18) * .02;
+    soft(ctx, x, y + 8, 60 * s, .45);
+    ctx.save(); ctx.translate(x, y + 8 - bob); ctx.rotate(ph * .045 + (swing || 0)); ctx.scale(1 / sq, sq);
+    ctx.drawImage(im, -w * .5, -h, w, h); ctx.restore();
   }
 
   // ---------- декорации ----------
@@ -876,7 +851,7 @@
     tx(ctx, titleOf(curDays(), S.lvl), W - 61, 54, 10.5, '#ffd84a', 'rgba(0,0,0,.6)', 700);
     tx(ctx, 'Ур.' + S.lvl + ' · рекорд ' + (P.lv.bests[S.lvl] || 0), W - 61, 68, 10, '#fff', 'rgba(0,0,0,.6)', 600);
     if (S.shield > 0) { rrp(ctx, 70, 100, 220, 17, 9); ctx.fillStyle = 'rgba(30,15,40,.62)'; ctx.fill(); ctx.save(); rrp(ctx, 72, 102, 216, 13, 7); ctx.clip(); ctx.fillStyle = grad(ctx, 0, 102, 0, 115, '#ffd070', '#f08a1a'); ctx.fillRect(72, 102, 216 * S.shield / S.shieldMax, 13); ctx.restore(); tx(ctx, 'Кот Огурец осуждает', 180, 108.5, 10, '#3a1d00', null, 800); }
-    if (S.zina) { var z = S.zina, y0 = S.shield > 0 ? 124 : 102; rrp(ctx, 50, y0, 260, 38, 12); ctx.fillStyle = 'rgba(120,20,40,.82)'; ctx.fill(); ctx.strokeStyle = '#ffd84a'; ctx.lineWidth = 2; ctx.stroke(); tx(ctx, 'Зина! Дела: ' + z.got + ' / ' + z.need, 180, y0 + 13, 14, '#fff', 'rgba(0,0,0,.5)', 800); ctx.fillStyle = 'rgba(0,0,0,.4)'; ctx.fillRect(66, y0 + 26, 228, 5); ctx.fillStyle = '#ffd84a'; ctx.fillRect(66, y0 + 26, 228 * Math.max(0, z.left / z.max), 5); }
+    if (S.zina) { var z = S.zina, y0 = S.shield > 0 ? 124 : 102; rrp(ctx, 50, y0, 260, 38, 12); ctx.fillStyle = 'rgba(120,20,40,.82)'; ctx.fill(); ctx.strokeStyle = '#ffd84a'; ctx.lineWidth = 2; ctx.stroke(); if (IMG.zina && IMG.zina[2]) { var zi = IMG.zina[2], zh = 30; ctx.drawImage(zi, 60, y0 + 4, zh * zi.width / zi.height, zh); } tx(ctx, 'Зина! Дела: ' + z.got + ' / ' + z.need, 190, y0 + 13, 14, '#fff', 'rgba(0,0,0,.5)', 800); ctx.fillStyle = 'rgba(0,0,0,.4)'; ctx.fillRect(66, y0 + 26, 228, 5); ctx.fillStyle = '#ffd84a'; ctx.fillRect(66, y0 + 26, 228 * Math.max(0, z.left / z.max), 5); }
     if (S.x2 > 0) tx(ctx, '×2 ещё ' + Math.ceil(S.x2) + ' с', 180, 160, 12, '#fff08a', 'rgba(0,0,0,.6)', 800);
     ctx.restore();
   }
@@ -1072,11 +1047,11 @@
       IMG.cos[c.id] = { f: r[0], b: [r[1]].concat(r[2] ? [r[2]] : []), ok: !!(r[0] && r[1]) };
     });
   });
-  Promise.all(cosLoads.concat([load('assets/cat.png').then(function (i) { IMG.cat = i; }), fontP])).then(function () { buildSprites(); heroUpdate(); });
+  Promise.all(cosLoads.concat([load('assets/cat.png').then(function (i) { IMG.cat = i; }), Promise.all([load('assets/zina_back1.png'), load('assets/zina_back2.png'), load('assets/zina_front.png')]).then(function (r) { IMG.zina = r; }), fontP])).then(function () { buildSprites(); heroUpdate(); });
   requestAnimationFrame(frame);
 
   window.__game = {
-    state: function () { return S; }, save: function () { return P; }, spawn: function (kind, lane, z) { S.objs.push({ kind: kind, obst: !!ALLOBST[kind], lane: lane, lx: lane, z: z || 0 }); }, LV: LV, setLevel: function (l) { curLvl = l; P.lv.sel = l; }, start: function (l, c) { startRun(l, c); }, winNow: function () { S.dayAcc = LV[S.lvl].goal; },
+    state: function () { return S; }, save: function () { return P; }, spawn: function (kind, lane, z) { S.objs.push({ kind: kind, obst: !!ALLOBST[kind], lane: lane, lx: lane, z: z || 0 }); }, persist: save, LV: LV, setLevel: function (l) { curLvl = l; P.lv.sel = l; }, start: function (l, c) { startRun(l, c); }, winNow: function () { S.dayAcc = LV[S.lvl].goal; },
     curDays: curDays, zina: function () { S.zinaNext = S.t; S.shield = 0; }, setDays: function (n) { S.dayAcc = n; }, EXCUSES: EXCUSES
   };
 })();
