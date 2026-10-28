@@ -46,12 +46,19 @@
 
   // ---------- сохранение ----------
   var SAVE_KEY = 'palych_save_v2';
-  var P = { best: 0, cuc: 0, up: { shield: 0, will: 0, magnet: 0 }, skins: { none: 1 }, skin: 'none', ex: {}, q: { date: '', id: '', p: 0, done: 0 }, tut: 0, runs: 0 };
+  var P = { best: 0, cuc: 0, up: { shield: 0, will: 0, magnet: 0 }, costumes: { bomzh: 1, classic: 1 }, costume: 'classic', v: 3, ex: {}, q: { date: '', id: '', p: 0, done: 0 }, tut: 0, runs: 0 };
   try {
     var raw = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null');
     if (raw) { for (var k in raw) P[k] = raw[k]; }
     else P.best = parseInt(localStorage.getItem('palych_best') || '0', 10) || 0;
   } catch (e) {}
+  // миграция старых сохранений (скины v2 -> костюмы v3): купленное не теряется
+  if (P.skins || P.skin || !P.v || P.v < 3) {
+    var oldMap = { stripes: 'tel', wedding: 'groom', boots: 'fish', mask: 'welder' };
+    P.costumes = { bomzh: 1, classic: 1 };
+    if (P.skins) for (var sk in P.skins) if (oldMap[sk]) P.costumes[oldMap[sk]] = 1;
+    P.costume = (P.skin && oldMap[P.skin]) || 'classic'; delete P.skins; delete P.skin; P.v = 3;
+  }
   function save() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(P)); localStorage.setItem('palych_best', String(P.best)); } catch (e) {} }
 
   var SHIELD_T = [5, 6.5, 8, 10], WILL0 = [70, 80, 90, 100];
@@ -60,13 +67,20 @@
     { id: 'will', name: 'Крепкая закалка', desc: 'Старт с большей силой воли', cost: [25, 50, 100], eff: function (l) { return WILL0[l] + '%'; } },
     { id: 'magnet', name: 'Огуречный магнит', desc: 'Притягивает огурцы (потом и дела)', cost: [40, 80, 150], eff: function (l) { return ['нет', 'соседние полосы', 'все полосы', 'огурцы и дела'][l]; } }
   ];
-  var SKINS = [
-    { id: 'none', name: 'Классика', cost: 0 },
-    { id: 'stripes', name: 'Тельняшка', cost: 60 },
-    { id: 'wedding', name: 'Костюм на свадьбу', cost: 120 },
-    { id: 'boots', name: 'Валенки', cost: 90 },
-    { id: 'mask', name: 'Сварочная маска', cost: 150 }
+  var COSTUMES = [
+    { id: 'bomzh', art: 1, name: 'Бомж', cost: 0, bonus: 'Находит лишнее: каждый 4-й огурец двойной', b: { cucx: 1 } },
+    { id: 'classic', art: 1, name: 'Классика', cost: 0, bonus: 'Майка, треники, тапки. Без бонусов, зато родной', b: {} },
+    { id: 'tel', art: 1, name: 'Тельняшка и кепка', cost: 60, bonus: '+10% силы воли на старте', b: { will: 10 } },
+    { id: 'welder', art: 1, name: 'Сварщик', cost: 120, bonus: 'Щит Кота Огурца дольше на 1 с', b: { shield: 1 } },
+    { id: 'fish', art: 1, name: 'Рыбак', cost: 200, bonus: 'Магнит: огурцы с соседних полос', b: { magnet: 1 } },
+    { id: 'dacha', name: 'Дачник', cost: 320, bonus: 'Дела лечат силу воли сильнее (+8)', b: { heal: 8 } },
+    { id: 'sport', art: 1, name: 'Спортсмен «С понедельника»', cost: 500, bonus: 'Прыжок выше и без паузы', b: { jumpH: 96, jumpCd: 0 } },
+    { id: 'groom', name: 'Жених', cost: 800, bonus: 'Near-miss даёт +3 дня', b: { near: 2 } },
+    { id: 'deputy', name: 'Депутат', cost: 1300, bonus: 'Магнит на все полосы', b: { magnet: 2 } },
+    { id: 'cosmo', name: 'Космонавт', cost: 2000, bonus: 'Прыжок как на Луне, +15% силы воли', b: { jumpH: 130, jumpD: .85, will: 15 } }
   ];
+  function costume() { for (var i = 0; i < COSTUMES.length; i++) if (COSTUMES[i].id === P.costume) return COSTUMES[i]; return COSTUMES[1]; }
+  function cb() { return costume().b; }
   var TITLES = [[0, 'Новичок'], [7, 'Держится'], [30, 'Кремень'], [100, 'Легенда двора']];
   var MILES = [[7, 'Неделя!', 'Огурец впервые мурлыкнул.'], [30, 'Месяц!', 'Люда передала борщ без записки.'], [100, 'Сто дней!', 'Баба Зина лично пожала руку.'], [365, 'ГОД!', 'Лёха снял с учёта. Легенда двора!']];
   function titleOf(d) { var t = TITLES[0][1]; TITLES.forEach(function (x) { if (d >= x[0]) t = x[1]; }); return t; }
@@ -124,7 +138,7 @@
   };
 
   // ---------- графические помощники ----------
-  var OUT = '#2b1d14', SC = 3, SPR = {}, IMG = {}, SKINIMG = {};
+  var OUT = '#2b1d14', SC = 3, SPR = {}, IMG = { cos: {} };
   function rrp(c, x, y, w, h, r) { c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); }
   function grad(c, x0, y0, x1, y1, a, b, m) { var g = c.createLinearGradient(x0, y0, x1, y1); g.addColorStop(0, a); if (m) g.addColorStop(.5, m); g.addColorStop(1, b); return g; }
   function fs(c, fill, lw, col) { c.fillStyle = fill; c.fill(); c.lineWidth = lw || 2.5; c.strokeStyle = col || OUT; c.lineJoin = 'round'; c.stroke(); }
@@ -346,29 +360,6 @@
     SPR.tree = [0, 1].map(function (v) { return mk(120, 150, 60, 140, function (c) { iTree(c, v); }); });
     SPR.lamp = mk(60, 140, 30, 130, iLamp); SPR.bush = mk(80, 50, 40, 44, iBush);
     buildFar();
-    // скины Палыча (вид со спины), два кадра бега
-    function skinFrame(id, im, f) {
-      var w = im.width, h = im.height, cc = document.createElement('canvas'); cc.width = w; cc.height = h; var c = cc.getContext('2d'); c.drawImage(im, 0, 0);
-      if (id === 'stripes') {
-        c.globalCompositeOperation = 'source-atop';
-        for (var y = h * .17; y < h * .46; y += h * .04) { c.fillStyle = 'rgba(245,248,252,.93)'; c.fillRect(0, y, w, h * .02); c.fillStyle = 'rgba(40,80,170,.92)'; c.fillRect(0, y + h * .02, w, h * .02); }
-      } else if (id === 'wedding') {
-        c.globalCompositeOperation = 'source-atop'; c.fillStyle = 'rgba(28,30,40,.92)'; c.fillRect(0, h * .17, w, h * .29); c.fillStyle = 'rgba(20,22,30,.93)'; c.fillRect(0, h * .46, w, h * .36);
-        c.globalCompositeOperation = 'source-over'; c.strokeStyle = 'rgba(255,255,255,.28)'; c.lineWidth = 3; c.beginPath(); c.moveTo(w * .5, h * .19); c.lineTo(w * .5, h * .44); c.stroke();
-        c.fillStyle = '#e9e9e2'; c.beginPath(); c.moveTo(w * .42, h * .165); c.lineTo(w * .56, h * .165); c.lineTo(w * .49, h * .2); c.closePath(); c.fill();
-        c.fillStyle = '#d92b2b'; c.beginPath(); c.arc(w * .75, h * .3, w * .025, 0, 7); c.fill();
-      } else if (id === 'boots') {
-        var F = f ? [[.19, .87, .095, .1, -.12], [.69, .79, .085, .075, .25]] : [[.21, .87, .1, .105, -.12], [.68, .82, .085, .075, .25]];
-        c.lineWidth = 4; c.strokeStyle = OUT;
-        F.forEach(function (b) { c.fillStyle = '#8f949c'; c.beginPath(); c.ellipse(w * b[0], h * b[1], w * b[2], h * b[3], b[4], 0, 7); c.fill(); c.stroke(); c.fillStyle = '#a9aeb6'; c.beginPath(); c.ellipse(w * b[0], h * (b[1] - b[3] * .9), w * b[2] * .75, h * b[3] * .45, b[4], 0, 7); c.fill(); c.stroke(); });
-      } else if (id === 'mask') {
-        c.fillStyle = '#2f343b'; c.strokeStyle = OUT; c.lineWidth = 4; c.beginPath(); c.ellipse(w * .54, h * .085, w * .15, h * .068, -.08, 0, 7); c.fill(); c.stroke();
-        c.strokeStyle = 'rgba(255,255,255,.3)'; c.lineWidth = 3; c.beginPath(); c.ellipse(w * .52, h * .07, w * .1, h * .035, -.08, Math.PI * 1.1, Math.PI * 1.8); c.stroke();
-        c.fillStyle = '#d9a21a'; c.fillRect(w * .4, h * .095, w * .27, h * .012);
-      }
-      return cc;
-    }
-    ['none', 'stripes', 'wedding', 'boots', 'mask'].forEach(function (id) { SKINIMG[id] = [0, 1].map(function (f) { return skinFrame(id, IMG.pb[f], f); }); });
   }
 
   // ---------- состояние ----------
@@ -378,7 +369,7 @@
   function newRun(mode) {
     S = {
       mode: mode, t: 0, lane: 1, laneF: 1, speed: 1, dayAcc: 0, bonus: 0, days: 0, cuc: 0, deeds: 0, near: 0, zinaOK: 0,
-      will: WILL0[P.up.will], objs: [], scen: [], parts: [], texts: [], spawnT: .6, shield: 0, shieldMax: 5, usedShield: false,
+      will: Math.min(100, WILL0[P.up.will] + (cb().will || 0)), objs: [], scen: [], parts: [], texts: [], spawnT: .6, shield: 0, shieldMax: 5, usedShield: false,
       offs: 0, scenT: 0, shake: 0, flash: 0, dieT: 0, stepT: 0, inv: 0, jumpT: -1, jumpH: 0, jumpCd: 0, squash: 0, stagger: 0,
       slow: 0, nearCd: 0, zina: null, zinaNext: 22, x2: 0, ms: {}, ban: null, hurt: 0, lastMove: -9, prevLane: 1, tut: 0, rt: 0, moved: false
     };
@@ -417,7 +408,7 @@
 
   function startRun() {
     hideAll(); newRun('play'); sfx.bonus();
-    S.shieldMax = SHIELD_T[P.up.shield];
+    S.shieldMax = SHIELD_T[P.up.shield] + (cb().shield || 0);
     if (IS_MON) banner('Новая жизнь!', MON_PHRASES[Math.floor(Math.random() * MON_PHRASES.length)] + ' · ×2 дней', 'mon');
     if (!P.tut) { S.tut = 1; }
   }
@@ -456,8 +447,8 @@
     }
   }
   function nearMiss(o) {
-    S.nearCd = 1.2; S.slow = .55; S.near++; S.bonus += 1;
-    addText('Ох, чуть не…', S.lane, '#fff08a', true); addText('+1 день за стойкость', S.lane, '#9dff6a'); S.texts[S.texts.length - 1].y = 440; sfx.near();
+    S.nearCd = 1.2; S.slow = .55; S.near++; S.bonus += 1 + (cb().near || 0);
+    addText('Ох, чуть не…', S.lane, '#fff08a', true); addText('+' + (1 + (cb().near || 0)) + ' ' + dayWord(1 + (cb().near || 0)) + ' за стойкость', S.lane, '#9dff6a'); S.texts[S.texts.length - 1].y = 440; sfx.near();
     heal(3);
   }
   function jump() {
@@ -502,7 +493,7 @@
     S.inv = Math.max(0, S.inv - dt); S.nearCd = Math.max(0, S.nearCd - dtr); S.jumpCd = Math.max(0, S.jumpCd - dtr);
     S.squash += (0 - S.squash) * Math.min(1, dtr * 11);
     S.stepT += dt * (6 + sp * 4);
-    if (S.jumpT >= 0) { S.jumpT += dt; var jd = .62; if (S.jumpT >= jd) { S.jumpT = -1; S.jumpH = 0; S.squash = .16; S.jumpCd = .15; } else S.jumpH = 78 * Math.sin(Math.PI * S.jumpT / jd); }
+    if (S.jumpT >= 0) { S.jumpT += dt; var jd = cb().jumpD || .62; if (S.jumpT >= jd) { S.jumpT = -1; S.jumpH = 0; S.squash = .16; S.jumpCd = cb().jumpCd !== undefined ? cb().jumpCd : .15; } else S.jumpH = (cb().jumpH || 78) * Math.sin(Math.PI * S.jumpT / jd); }
     if (play) {
       S.dayAcc += dt * 1.2 * mult(); S.x2 = Math.max(0, S.x2 - dt);
       S.spawnT -= dt; if (S.spawnT <= 0) { spawn(); S.spawnT = Math.max(.55, 1.25 - S.t * .008) / Math.sqrt(S.speed); }
@@ -521,7 +512,7 @@
     }
     S.scenT -= dt * sp; if (S.scenT <= 0) { addScen(0); S.scenT = .2; }
     for (i = S.scen.length - 1; i >= 0; i--) { S.scen[i].z += dt * sp * .45; if (S.scen[i].z > 1.45) S.scen.splice(i, 1); }
-    var ml = P.up.magnet;
+    var ml = Math.max(P.up.magnet, cb().magnet || 0);
     for (i = S.objs.length - 1; i >= 0; i--) {
       o = S.objs[i];
       if (o.fly) { o.fx += o.vx * dt; o.fy += o.vy * dt; o.vy += 600 * dt; o.rot += dt * 10; o.life -= dt; if (o.life <= 0) S.objs.splice(i, 1); continue; }
@@ -537,9 +528,9 @@
           else { launch(o); hurt(30); }
         } else {
           o.got = true;
-          if (o.kind === 'cuc') { S.cuc++; heal(4); burst(px, py, '#7ee04a', 10); sfx.pick(); addText('+огурец', S.lane, '#b6ff7a'); if (S.cuc % 5 === 0) addDays(1, 'пять огурцов'); }
-          else if (o.kind === 'wrench') { S.deeds++; addDays(3, 'починил кран'); heal(15); burst(px, py, '#dfe8ee', 14, 'star'); sfx.bonus(); if (S.zina) S.zina.got++; }
-          else if (o.kind === 'phone') { S.deeds++; addDays(5, 'позвонил дочке'); heal(20); burst(px, py, '#ff8ab5', 14, 'star'); sfx.bonus(); if (S.zina) S.zina.got++; }
+          if (o.kind === 'cuc') { S.cuc++; if (cb().cucx && S.cuc % 4 === 0) S.cuc++; heal(4); burst(px, py, '#7ee04a', 10); sfx.pick(); addText('+огурец', S.lane, '#b6ff7a'); if (S.cuc % 5 === 0) addDays(1, 'пять огурцов'); }
+          else if (o.kind === 'wrench') { S.deeds++; addDays(3, 'починил кран'); heal(15 + (cb().heal || 0)); burst(px, py, '#dfe8ee', 14, 'star'); sfx.bonus(); if (S.zina) S.zina.got++; }
+          else if (o.kind === 'phone') { S.deeds++; addDays(5, 'позвонил дочке'); heal(20 + (cb().heal || 0)); burst(px, py, '#ff8ab5', 14, 'star'); sfx.bonus(); if (S.zina) S.zina.got++; }
           else if (o.kind === 'cat') { S.shield = S.shieldMax; S.usedShield = true; addText('Кот Огурец! Щит ' + S.shieldMax + ' с', S.lane, '#ffd84a', true); burst(px, py, '#ffb347', 24, 'star'); sfx.cat(); }
         }
       }
@@ -567,8 +558,8 @@
   // ---------- рисование ----------
   function drawPalych(px, py) {
     var st = S.stepT, play = S.mode === 'play', fr = (play && Math.sin(st) < 0) ? 1 : 0;
-    var set = SKINIMG[P.skin] || SKINIMG.none; if (!set) return; var img = set[fr];
-    var h = 170, w = h * img.width / img.height, jump = S.jumpH;
+    var cs = IMG.cos[P.costume]; if (!cs || !cs.ok) cs = IMG.cos.classic; if (!cs) return; var img = cs.b[cs.b.length > 1 ? fr : 0];
+    var h = img.height * 170 / 560, w = img.width * 170 / 560, jump = S.jumpH;
     var bob = play ? Math.abs(Math.sin(st)) * 7 : 0, lean = (S.lane - S.laneF) * .3, sway = play ? Math.sin(st) * .05 : 0;
     var stag = S.stagger > 0 ? Math.sin(S.stagger * 30) * .16 * (S.stagger / .7) : 0;
     var sx = 1 + .035 * Math.sin(st * 2) * (play ? 1 : 0) + S.squash, sy = 1 - .035 * Math.sin(st * 2) * (play ? 1 : 0) - S.squash;
@@ -735,7 +726,13 @@
   function hideAll() { ['start', 'over', 'shop', 'album'].forEach(function (i) { $(i).classList.remove('show'); }); $('tip').classList.remove('show'); }
   function show(id) { hideAll(); $(id).classList.add('show'); }
   var from = 'start';
+  function heroUpdate() {
+    var cs = IMG.cos[P.costume]; if (!cs || !cs.ok) cs = IMG.cos.classic; if (!cs) return;
+    $('heroImg').src = 'assets/costumes/' + (IMG.cos[P.costume] && IMG.cos[P.costume].ok ? P.costume : 'classic') + '_front.png';
+    $('overImg').src = $('heroImg').src;
+  }
   function showStart() {
+    heroUpdate();
     show('start'); from = 'start'; newRun('menu'); cv.style.filter = '';
     var q = ensureQuest(), pct = Math.round(100 * P.q.p / q.n);
     $('quest').innerHTML = '<b>Задание дня:</b> ' + q.t + (P.q.done ? ' — <b>выполнено</b>' : ' (' + P.q.p + '/' + q.n + ', награда ' + q.r + ' огурцов)') + '<div class="bar"><i style="width:' + (P.q.done ? 100 : pct) + '%"></i></div>' +
@@ -762,19 +759,23 @@
       h += '<div class="item"><div><b>' + u.name + ' · ур. ' + l + '/3</b>' + u.desc + '<br>Сейчас: ' + u.eff(l) + (max ? '' : ' → ' + u.eff(l + 1)) + '</div>' +
         (max ? '<span>MAX</span>' : '<button class="btn" data-up="' + u.id + '"' + (P.cuc < cost ? ' disabled' : '') + '>' + cost + '</button>') + '</div>';
     });
-    h += '<div class="sub" style="margin-top:8px">Наряды Палыча</div>';
-    SKINS.forEach(function (s) {
-      var own = P.skins[s.id], on = P.skin === s.id;
-      h += '<div class="item"><div><b>' + s.name + '</b>' + (on ? 'Надето' : (own ? 'Есть в гардеробе' : '')) + '</div>' +
-        (on ? '<span>✓</span>' : (own ? '<button class="btn" data-wear="' + s.id + '">Надеть</button>' : '<button class="btn" data-buy="' + s.id + '"' + (P.cuc < s.cost ? ' disabled' : '') + '>' + s.cost + '</button>')) + '</div>';
+    var g = '';
+    COSTUMES.forEach(function (c) {
+      var cs = IMG.cos[c.id], ok = cs && cs.ok, own = P.costumes[c.id], on = P.costume === c.id;
+      g += '<div class="cc' + (on ? ' on' : '') + (own ? '' : ' locked') + '">' +
+        (ok ? '<img src="assets/costumes/' + c.id + '_front.png" alt="' + c.name + '" class="' + (own ? 'dance' : '') + '">' : '<div class="soon">скоро</div>') +
+        (own ? '' : '<span class="lock"></span>') +
+        '<b>' + c.name + '</b><small>' + c.bonus + '</small>' +
+        (!ok ? '<button class="btn" disabled>Скоро</button>' : (on ? '<span class="onl">Надето</span>' : (own ? '<button class="btn" data-wear="' + c.id + '">Надеть</button>' : '<button class="btn" data-buy="' + c.id + '"' + (P.cuc < c.cost ? ' disabled' : '') + '>Купить · ' + c.cost + '</button>'))) + '</div>';
     });
+    h = '<div class="sub">Костюмы Палыча</div><div class="cgrid">' + g + '</div><div class="sub" style="margin-top:10px">Улучшения</div>' + h;
     $('shopList').innerHTML = h;
   }
   $('shopList').addEventListener('click', function (e) {
     var b = e.target.closest('button'); if (!b || b.disabled) return;
     if (b.dataset.up) { var u = UPS.filter(function (x) { return x.id === b.dataset.up; })[0], l = P.up[u.id]; if (l < 3 && P.cuc >= u.cost[l]) { P.cuc -= u.cost[l]; P.up[u.id]++; sfx.bonus(); } }
-    else if (b.dataset.buy) { var s = SKINS.filter(function (x) { return x.id === b.dataset.buy; })[0]; if (P.cuc >= s.cost) { P.cuc -= s.cost; P.skins[s.id] = 1; P.skin = s.id; sfx.bonus(); } }
-    else if (b.dataset.wear) { P.skin = b.dataset.wear; sfx.pick(); }
+    else if (b.dataset.buy) { var s = COSTUMES.filter(function (x) { return x.id === b.dataset.buy; })[0]; if (P.cuc >= s.cost) { P.cuc -= s.cost; P.costumes[s.id] = 1; P.costume = s.id; sfx.bonus(); } }
+    else if (b.dataset.wear) { P.costume = b.dataset.wear; sfx.pick(); }
     save(); renderShop();
   });
   function renderAlbum() {
@@ -818,7 +819,13 @@
   function load(src) { return new Promise(function (res) { var i = new Image(); i.onload = function () { res(i); }; i.onerror = function () { res(null); }; i.src = src; }); }
   newRun('menu'); initBg(); showStart();
   var fontP = (document.fonts && document.fonts.load) ? Promise.race([document.fonts.load('800 20px Rubik'), new Promise(function (r) { setTimeout(r, 1500); })]) : Promise.resolve();
-  Promise.all([load('assets/palych_back1.png'), load('assets/palych_back2.png'), load('assets/cat.png'), fontP]).then(function (r) { IMG.pb = [r[0], r[1]]; IMG.cat = r[2]; if (r[0] && r[1]) buildSprites(); });
+  var cosLoads = COSTUMES.map(function (c) {
+    if (!c.art) { IMG.cos[c.id] = { ok: false, b: [] }; return Promise.resolve(); }
+    return Promise.all([load('assets/costumes/' + c.id + '_front.png'), load('assets/costumes/' + c.id + '_back.png'), c.id === 'classic' ? load('assets/costumes/classic_back2.png') : Promise.resolve(null)]).then(function (r) {
+      IMG.cos[c.id] = { f: r[0], b: [r[1]].concat(r[2] ? [r[2]] : []), ok: !!(r[0] && r[1]) };
+    });
+  });
+  Promise.all(cosLoads.concat([load('assets/cat.png').then(function (i) { IMG.cat = i; }), fontP])).then(function () { buildSprites(); heroUpdate(); });
   requestAnimationFrame(frame);
 
   window.__game = {

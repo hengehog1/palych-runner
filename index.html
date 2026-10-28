@@ -47,6 +47,28 @@ canvas{position:absolute;inset:0;width:100%;height:100%;display:block;transition
 .ec.lock{opacity:.55;text-align:center;display:flex;align-items:center;justify-content:center;font-size:calc(var(--u)*22)}
 .ec em{display:block;font-style:normal;font-weight:800;font-size:calc(var(--u)*9);margin-bottom:2px}
 .r1 .rar,.ec.r1{border-color:#9aa6b5}.ec.r2{border-color:#4aa3ff;background:#2b6ad533}.ec.r3{border-color:#ffd84a;background:#ffb60044;box-shadow:0 0 calc(var(--u)*12) #ffc83a99}
+
+.stage{position:relative;height:calc(var(--u)*230);width:calc(var(--u)*230);margin:calc(var(--u)*4) 0;display:flex;align-items:flex-end;justify-content:center}
+.stage::before{content:"";position:absolute;inset:8% 4% 2%;border-radius:50%;background:radial-gradient(circle,#ffb347aa,#ff6a3c22 60%,transparent 72%)}
+.stage.small{height:calc(var(--u)*120);width:calc(var(--u)*120)}
+.hero{position:relative;height:100%;width:auto;filter:drop-shadow(0 calc(var(--u)*6) calc(var(--u)*6) #0009);transform-origin:50% 100%;animation:runbob .55s ease-in-out infinite}
+.hero.dizzy{animation:dizzy 1.4s ease-in-out infinite;filter:drop-shadow(0 calc(var(--u)*5) calc(var(--u)*5) #0009) saturate(.75)}
+@keyframes runbob{0%,100%{transform:translateY(0) rotate(-2.5deg) scale(1.02,.98)}25%{transform:translateY(-5%) rotate(0) scale(.99,1.02)}50%{transform:translateY(0) rotate(2.5deg) scale(1.02,.98)}75%{transform:translateY(-5%) rotate(0) scale(.99,1.02)}}
+@keyframes dizzy{0%,100%{transform:rotate(-7deg)}50%{transform:rotate(7deg)}}
+.cgrid{display:grid;grid-template-columns:1fr 1fr;gap:calc(var(--u)*7)}
+.cc{position:relative;background:#ffffff18;border:calc(var(--u)*2) solid #ffffff33;border-radius:calc(var(--u)*12);padding:calc(var(--u)*6) calc(var(--u)*5);display:flex;flex-direction:column;align-items:center;text-align:center;font-size:calc(var(--u)*11)}
+.cc.on{border-color:#7ed957;background:#4fb53130}
+.cc img{height:calc(var(--u)*105);width:auto;transform-origin:50% 100%}
+.cc img.dance{animation:runbob .6s ease-in-out infinite}
+.cc.locked img{filter:brightness(.45) saturate(.6)}
+.cc b{color:#ffd84a;font-size:calc(var(--u)*12.5);margin-top:calc(var(--u)*3);line-height:1.1}
+.cc small{opacity:.85;font-size:calc(var(--u)*10);line-height:1.15;min-height:calc(var(--u)*24);margin:calc(var(--u)*2) 0}
+.cc .btn{font-size:calc(var(--u)*12);padding:calc(var(--u)*5) calc(var(--u)*9);margin:0;white-space:nowrap}
+.cc .btn:disabled{filter:grayscale(1);opacity:.5}
+.cc .onl{color:#7ed957;font-weight:800;font-size:calc(var(--u)*13);padding:calc(var(--u)*5)}
+.cc .soon{height:calc(var(--u)*105);display:flex;align-items:center;font-size:calc(var(--u)*18);opacity:.5;font-weight:800}
+.lock{position:absolute;top:calc(var(--u)*8);right:calc(var(--u)*8);width:calc(var(--u)*18);height:calc(var(--u)*13);background:#ffd84a;border-radius:calc(var(--u)*3);margin-top:calc(var(--u)*6);box-shadow:0 0 0 calc(var(--u)*1.5) #2b1d14}
+.lock::before{content:"";position:absolute;left:calc(var(--u)*3.5);top:calc(var(--u)*-8);width:calc(var(--u)*7);height:calc(var(--u)*9);border:calc(var(--u)*2.5) solid #ffd84a;border-bottom:0;border-radius:calc(var(--u)*6) calc(var(--u)*6) 0 0}
 #tip{position:absolute;left:5%;right:5%;bottom:calc(var(--u)*30);background:#fffdf0f2;color:#2a2a2a;border-radius:calc(var(--u)*16);border:calc(var(--u)*3) solid #ffd84a;
  padding:calc(var(--u)*9) calc(var(--u)*12);font-size:calc(var(--u)*14);font-weight:700;text-align:center;display:none;box-shadow:0 calc(var(--u)*6) calc(var(--u)*14) #0007}
 #tip.show{display:block}
@@ -59,7 +81,7 @@ canvas{position:absolute;inset:0;width:100%;height:100%;display:block;transition
   <div id="start" class="ov show">
     <h1>Палыч:<br>Продержись!</h1>
     <div class="sub" id="monday"></div>
-    <img class="portrait" src="assets/start.jpg" alt="Палыч и кот Огурец">
+    <div class="stage"><img id="heroImg" class="hero" alt="Палыч"></div>
     <div class="card" id="quest"></div>
     <button class="btn" id="bStart">Начать</button>
     <div class="row"><button class="btn alt sm" id="bShop">Магазин</button><button class="btn alt sm" id="bAlbum">Альбом отмазок</button></div>
@@ -68,6 +90,7 @@ canvas{position:absolute;inset:0;width:100%;height:100%;display:block;transition
   <div id="over" class="ov">
     <div style="font-size:calc(var(--u)*13);opacity:.85;font-weight:600">Срыв! Сила воли кончилась</div>
     <div id="days">Счётчик дней: 0</div>
+    <div class="stage small"><img id="overImg" class="hero dizzy" alt="Палыч"></div>
     <div id="rec"></div>
     <div id="excuse"></div>
     <div id="extra"></div>
