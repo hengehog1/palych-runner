@@ -48,7 +48,7 @@ canvas{position:absolute;inset:0;width:100%;height:100%;display:block;transition
 .ec em{display:block;font-style:normal;font-weight:800;font-size:calc(var(--u)*9);margin-bottom:2px}
 .r1 .rar,.ec.r1{border-color:#9aa6b5}.ec.r2{border-color:#4aa3ff;background:#2b6ad533}.ec.r3{border-color:#ffd84a;background:#ffb60044;box-shadow:0 0 calc(var(--u)*12) #ffc83a99}
 
-.stage{position:relative;height:calc(var(--u)*230);width:calc(var(--u)*230);margin:calc(var(--u)*4) 0;display:flex;align-items:flex-end;justify-content:center}
+.stage{position:relative;height:calc(var(--u)*185);width:calc(var(--u)*200);margin:calc(var(--u)*4) 0;display:flex;align-items:flex-end;justify-content:center}
 .stage::before{content:"";position:absolute;inset:8% 4% 2%;border-radius:50%;background:radial-gradient(circle,#ffb347aa,#ff6a3c22 60%,transparent 72%)}
 .stage.small{height:calc(var(--u)*120);width:calc(var(--u)*120)}
 .hero{position:relative;height:100%;width:auto;filter:drop-shadow(0 calc(var(--u)*6) calc(var(--u)*6) #0009);transform-origin:50% 100%;animation:runbob .55s ease-in-out infinite}
@@ -69,6 +69,11 @@ canvas{position:absolute;inset:0;width:100%;height:100%;display:block;transition
 .cc .soon{height:calc(var(--u)*105);display:flex;align-items:center;font-size:calc(var(--u)*18);opacity:.5;font-weight:800}
 .lock{position:absolute;top:calc(var(--u)*8);right:calc(var(--u)*8);width:calc(var(--u)*18);height:calc(var(--u)*13);background:#ffd84a;border-radius:calc(var(--u)*3);margin-top:calc(var(--u)*6);box-shadow:0 0 0 calc(var(--u)*1.5) #2b1d14}
 .lock::before{content:"";position:absolute;left:calc(var(--u)*3.5);top:calc(var(--u)*-8);width:calc(var(--u)*7);height:calc(var(--u)*9);border:calc(var(--u)*2.5) solid #ffd84a;border-bottom:0;border-radius:calc(var(--u)*6) calc(var(--u)*6) 0 0}
+
+.lvls{display:flex;gap:calc(var(--u)*6);width:96%;margin:calc(var(--u)*2) 0 calc(var(--u)*2)}
+.lv{flex:1;font:inherit;color:#fff;background:#ffffff1c;border:calc(var(--u)*2) solid #ffffff33;border-radius:calc(var(--u)*12);padding:calc(var(--u)*5) calc(var(--u)*3);display:flex;flex-direction:column;align-items:center;cursor:pointer;line-height:1.1}
+.lv b{font-size:calc(var(--u)*18);color:#ffd84a}.lv span{font-size:calc(var(--u)*11);font-weight:700}.lv small{font-size:calc(var(--u)*9);opacity:.8}
+.lv.on{border-color:#7ed957;background:#4fb53138}.lv.lk{opacity:.45}.lv.lk b::after{content:" ×"}
 #tip{position:absolute;left:8%;right:8%;bottom:calc(var(--u)*12);background:#fffdf0ee;color:#2a2a2a;border-radius:calc(var(--u)*12);border:calc(var(--u)*2) solid #ffd84a;padding:calc(var(--u)*5) calc(var(--u)*9);font-size:calc(var(--u)*11);font-weight:600;text-align:center;display:none;box-shadow:0 calc(var(--u)*3) calc(var(--u)*8) #0007;line-height:1.2}
 #tip.show{display:block}
 </style>
@@ -82,6 +87,7 @@ canvas{position:absolute;inset:0;width:100%;height:100%;display:block;transition
     <div class="sub" id="monday"></div>
     <div class="stage"><img id="heroImg" class="hero" alt="Палыч"></div>
     <div class="card" id="quest"></div>
+    <div class="lvls" id="lvls"></div>
     <button class="btn" id="bStart">Начать</button>
     <div class="row"><button class="btn alt sm" id="bShop">Магазин</button><button class="btn alt sm" id="bAlbum">Альбом отмазок</button></div>
     <div class="hint">Свайп или тап влево/вправо · вверх: прыжок · на ПК стрелки</div>
@@ -96,6 +102,8 @@ canvas{position:absolute;inset:0;width:100%;height:100%;display:block;transition
     <div class="row"><button class="btn" id="bAgain">Ещё раз</button><button class="btn alt" id="bShare">Поделиться</button></div>
     <div class="row"><button class="btn alt sm" id="bShop2">Магазин</button><button class="btn alt sm" id="bAlbum2">Альбом</button></div>
   </div>
+  <div id="lvl" class="ov"><h2 id="lvlT">Уровень пройден!</h2><div class="sub" id="lvlS"></div><div class="stage small"><img id="lvlImg" class="hero" alt=""></div><div class="card" id="lvlStat"></div><button class="btn" id="bNext">Дальше</button><div class="row"><button class="btn alt sm" id="bShare2">Поделиться</button><button class="btn alt sm" id="bMenu">В меню</button></div></div>
+  <div id="final" class="ov"><h1 id="finT">Палыч продержался!</h1><div class="stage"><img id="finImg" class="hero" alt=""></div><div id="excuse2" class="sub" style="font-style:italic"><span id="finS"></span></div><div class="card" id="finStat"></div><div class="row"><button class="btn" id="bAgain2">Играть снова</button><button class="btn alt" id="bShare3">Поделиться</button></div><button class="btn alt sm" id="bMenu2">В меню</button></div>
   <div id="shop" class="ov"><h2>Магазин огурцов</h2><div id="wallet" class="sub"></div><div class="scroll" id="shopList"></div><button class="btn alt" data-back>Назад</button></div>
   <div id="album" class="ov"><h2>Альбом отмазок</h2><div id="albumCnt" class="sub"></div><div class="scroll"><div class="grid" id="albumGrid"></div></div><button class="btn alt" data-back>Назад</button></div>
 </div>
