@@ -289,9 +289,11 @@
     ctx.beginPath(); ctx.moveTo(-43, -185 + b); ctx.quadraticCurveTo(0, -246 + b, 43, -185 + b); ctx.quadraticCurveTo(0, -170 + b, -43, -185 + b); fs(ctx, grad(ctx, 0, -246, 0, -170, '#ff6a5c', '#c4281e'), 3);
     ctx.fillStyle = '#ffe9e0'; [[-22, -200], [8, -214], [26, -194], [-6, -184]].forEach(function (p) { ctx.beginPath(); ctx.arc(p[0], p[1] + b, 3.2, 0, 7); ctx.fill(); });
     ctx.beginPath(); ctx.moveTo(0, -176 + b); ctx.lineTo(-16, -158 + b); ctx.lineTo(-4, -154 + b); ctx.closePath(); fs(ctx, '#d9382a', 2.5); ctx.beginPath(); ctx.moveTo(0, -176 + b); ctx.lineTo(16, -158 + b); ctx.lineTo(4, -154 + b); ctx.closePath(); fs(ctx, '#d9382a', 2.5);
-    // правая рука со скалкой над головой
-    ctx.save(); ctx.translate(62, -118 + b); ctx.rotate(-.9 + Math.sin(t * 8) * .35 + (swing || 0)); rrp(ctx, -11, 0, 22, 56, 11); fs(ctx, '#8458b3', 3);
-    ctx.translate(0, -4); rrp(ctx, -9, -88, 18, 80, 9); fs(ctx, grad(ctx, -9, 0, 9, 0, '#e9c58a', '#a8743c', '#d4a35e'), 3); rrp(ctx, -4, -104, 8, 18, 4); fs(ctx, '#a8743c', 2.5); rrp(ctx, -4, -10, 8, 14, 4); fs(ctx, '#a8743c', 2.5);
+    // правая рука поднята вверх-вбок, скалка в кулаке над головой
+    ctx.save(); ctx.translate(58, -136 + b); ctx.rotate(Math.PI + .55 + Math.sin(t * 8) * .3 + (swing || 0)); rrp(ctx, -11, 0, 22, 60, 11); fs(ctx, '#8458b3', 3);
+    ctx.translate(0, 62); ctx.rotate(-1.15);
+    rrp(ctx, -9, -44, 18, 88, 9); fs(ctx, grad(ctx, -9, 0, 9, 0, '#e9c58a', '#a8743c', '#d4a35e'), 3); rrp(ctx, -4, -60, 8, 18, 4); fs(ctx, '#a8743c', 2.5); rrp(ctx, -4, 42, 8, 18, 4); fs(ctx, '#a8743c', 2.5);
+    el(ctx, 0, 0, 12, 12, '#f3b79a', 2.5);
     ctx.restore();
     // реплика
     ctx.save(); ctx.translate(-70, -262 + b); rrp(ctx, -50, -16, 100, 32, 12); fs(ctx, '#fffdf2', 2.5); ctx.beginPath(); ctx.moveTo(20, 15); ctx.lineTo(34, 30); ctx.lineTo(36, 14); ctx.fillStyle = '#fffdf2'; ctx.fill(); tx(ctx, 'ПАЛЫЧ!!', 0, 0, 20, '#c1121f', null, 900); ctx.restore();
@@ -558,7 +560,7 @@
   function drawPalych(px, py) {
     var st = S.stepT, play = S.mode === 'play', fr = (play && Math.sin(st) < 0) ? 1 : 0;
     var cs = IMG.cos[P.costume]; if (!cs || !cs.ok) cs = IMG.cos.classic; if (!cs) return; var img = cs.b[cs.b.length > 1 ? fr : 0];
-    var h = img.height * 170 / 560, w = img.width * 170 / 560, jump = S.jumpH;
+    var h = img.height * 135 / 560, w = img.width * 135 / 560, jump = S.jumpH;
     var bob = play ? Math.abs(Math.sin(st)) * 7 : 0, lean = (S.lane - S.laneF) * .3, sway = play ? Math.sin(st) * .05 : 0;
     var stag = S.stagger > 0 ? Math.sin(S.stagger * 30) * .16 * (S.stagger / .7) : 0;
     var sx = 1 + .035 * Math.sin(st * 2) * (play ? 1 : 0) + S.squash, sy = 1 - .035 * Math.sin(st * 2) * (play ? 1 : 0) - S.squash;
@@ -710,7 +712,7 @@
     list.sort(function (a, b) { return a.z - b.z; });
     for (i = 0; i < list.length; i++) list[i].f();
     // Зина сзади
-    if (S.zina) { var zp = Math.min(1, S.zina.t / 1.2), sc = .8 + (1 - S.zina.left / 11) * .55; drawZina(W / 2 + Math.sin(S.rt * 4) * 14, H + 30 - 50 * zp, sc, S.rt, 0); }
+    if (S.zina) { var zp = Math.min(1, S.zina.t / 1.2), sc = .6 + (1 - S.zina.left / 11) * .4; drawZina(W / 2 + Math.sin(S.rt * 4) * 14, H + 30 - 50 * zp, sc, S.rt, 0); }
     S.parts.forEach(drawPart);
     S.texts.forEach(function (t) { ctx.globalAlpha = Math.min(1, t.life * 2); tx(ctx, t.s, t.x, t.y, t.big ? 18 : 14.5, t.color, '#1a0d20', 800); }); ctx.globalAlpha = 1;
     ctx.restore();
