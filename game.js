@@ -73,11 +73,11 @@
     { id: 'tel', art: 1, name: 'Тельняшка и кепка', cost: 60, bonus: '+10% силы воли на старте', b: { will: 10 } },
     { id: 'welder', art: 1, name: 'Сварщик', cost: 120, bonus: 'Щит Кота Огурца дольше на 1 с', b: { shield: 1 } },
     { id: 'fish', art: 1, name: 'Рыбак', cost: 200, bonus: 'Магнит: огурцы с соседних полос', b: { magnet: 1 } },
-    { id: 'dacha', name: 'Дачник', cost: 320, bonus: 'Дела лечат силу воли сильнее (+8)', b: { heal: 8 } },
+    { id: 'dacha', art: 1, name: 'Дачник', cost: 320, bonus: 'Дела лечат силу воли сильнее (+8)', b: { heal: 8 } },
     { id: 'sport', art: 1, name: 'Спортсмен «С понедельника»', cost: 500, bonus: 'Прыжок выше и без паузы', b: { jumpH: 96, jumpCd: 0 } },
-    { id: 'groom', name: 'Жених', cost: 800, bonus: 'Near-miss даёт +3 дня', b: { near: 2 } },
-    { id: 'deputy', name: 'Депутат', cost: 1300, bonus: 'Магнит на все полосы', b: { magnet: 2 } },
-    { id: 'cosmo', name: 'Космонавт', cost: 2000, bonus: 'Прыжок как на Луне, +15% силы воли', b: { jumpH: 130, jumpD: .85, will: 15 } }
+    { id: 'groom', art: 1, name: 'Жених', cost: 800, bonus: 'Near-miss даёт +3 дня', b: { near: 2 } },
+    { id: 'deputy', art: 1, name: 'Депутат', cost: 1300, bonus: 'Магнит на все полосы', b: { magnet: 2 } },
+    { id: 'cosmo', art: 1, name: 'Космонавт', cost: 2000, bonus: 'Прыжок как на Луне, +15% силы воли', b: { jumpH: 130, jumpD: .85, will: 15 } }
   ];
   function costume() { for (var i = 0; i < COSTUMES.length; i++) if (COSTUMES[i].id === P.costume) return COSTUMES[i]; return COSTUMES[1]; }
   function cb() { return costume().b; }
