@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#2a1d33">
+<title>Палыч: Продержись!</title>
+<style>
+@font-face{font-family:'Rubik';src:url(assets/rubik.ttf) format('truetype');font-weight:300 900;font-display:swap}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+html,body{margin:0;height:100%;background:#120d18;overflow:hidden;touch-action:none;font-family:'Rubik','Trebuchet MS',Verdana,Arial,sans-serif}
+body{display:flex;align-items:center;justify-content:center}
+#wrap{position:relative;overflow:hidden;background:#222;box-shadow:0 0 40px #000}
+canvas{position:absolute;inset:0;width:100%;height:100%;display:block;transition:filter .2s}
+.ov{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:#fff;
+ background:radial-gradient(ellipse at 50% 20%,#4a2f5acc,#1b1224f2 70%);padding:calc(var(--u)*14);overflow:hidden}
+.ov.show{display:flex}
+.ov h1{margin:0 0 calc(var(--u)*4);font-size:calc(var(--u)*36);font-weight:900;line-height:1;color:#ffd84a;
+ text-shadow:0 calc(var(--u)*3) 0 #8a3b00,0 calc(var(--u)*6) calc(var(--u)*14) #0009;letter-spacing:.5px}
+.ov h2{margin:0 0 calc(var(--u)*6);font-size:calc(var(--u)*24);font-weight:800;color:#ffd84a;text-shadow:0 calc(var(--u)*2) 0 #8a3b00}
+.sub{font-size:calc(var(--u)*13);opacity:.92;margin-bottom:calc(var(--u)*6);font-weight:500}
+.portrait{height:calc(var(--u)*200);width:auto;border-radius:calc(var(--u)*18);border:calc(var(--u)*3) solid #ffd84a;box-shadow:0 calc(var(--u)*8) calc(var(--u)*22) #000a,0 0 calc(var(--u)*30) #ff9a3c55;margin:calc(var(--u)*6) 0}
+.btn{font:inherit;font-weight:800;font-size:calc(var(--u)*22);padding:calc(var(--u)*10) calc(var(--u)*34);border:calc(var(--u)*2) solid #1f4d0e;border-radius:calc(var(--u)*30);
+ background:linear-gradient(#9cf06a,#4fb531);color:#103300;box-shadow:0 calc(var(--u)*5) 0 #2b7a15,0 calc(var(--u)*9) calc(var(--u)*14) #0007;cursor:pointer;margin:calc(var(--u)*4);text-shadow:0 1px 0 #ffffff88}
+.btn:active{transform:translateY(calc(var(--u)*3));box-shadow:0 calc(var(--u)*2) 0 #2b7a15}
+.btn.alt{background:linear-gradient(#ffe680,#f2b629);border-color:#7a4d00;color:#4a2b00;box-shadow:0 calc(var(--u)*4) 0 #b8891a,0 calc(var(--u)*8) calc(var(--u)*12) #0007;font-size:calc(var(--u)*15);padding:calc(var(--u)*8) calc(var(--u)*16)}
+.btn.sm{font-size:calc(var(--u)*14);padding:calc(var(--u)*7) calc(var(--u)*14)}
+.row{display:flex;flex-wrap:wrap;justify-content:center;align-items:center}
+.hint{font-size:calc(var(--u)*11);opacity:.7;margin-top:calc(var(--u)*4)}
+#days{font-size:calc(var(--u)*30);font-weight:900;color:#ff6a5a;margin:0;text-shadow:0 calc(var(--u)*3) 0 #5a0f08}
+#excuse{font-size:calc(var(--u)*15);font-weight:500;font-style:italic;background:#fffdf6;color:#2a2a2a;border-radius:calc(var(--u)*16);padding:calc(var(--u)*9) calc(var(--u)*13);
+ max-width:94%;position:relative;margin:calc(var(--u)*6) 0 calc(var(--u)*6);line-height:1.25;box-shadow:0 calc(var(--u)*5) calc(var(--u)*14) #0007;border:calc(var(--u)*3) solid #ccc}
+#excuse small{display:block;font-style:normal;font-size:calc(var(--u)*10);opacity:.6;margin-top:3px}
+#excuse .rar{position:absolute;top:calc(var(--u)*-10);left:50%;transform:translateX(-50%);font-style:normal;font-size:calc(var(--u)*10);font-weight:800;padding:calc(var(--u)*2) calc(var(--u)*10);border-radius:99px;color:#fff;white-space:nowrap}
+#rec{font-size:calc(var(--u)*13);color:#ffd84a;margin-bottom:calc(var(--u)*2);font-weight:600}
+#extra{font-size:calc(var(--u)*12);color:#bff59b;min-height:calc(var(--u)*16);font-weight:600}
+.card{background:#ffffff1c;border:calc(var(--u)*1.5) solid #ffffff44;border-radius:calc(var(--u)*14);padding:calc(var(--u)*7) calc(var(--u)*12);margin:calc(var(--u)*4) 0;font-size:calc(var(--u)*12);width:92%;backdrop-filter:blur(4px)}
+.card b{color:#ffd84a}
+.bar{height:calc(var(--u)*6);background:#0006;border-radius:9px;margin-top:calc(var(--u)*4);overflow:hidden}.bar i{display:block;height:100%;background:linear-gradient(90deg,#7ed957,#d3f57a)}
+.scroll{overflow-y:auto;width:100%;flex:1;margin:calc(var(--u)*4) 0;touch-action:pan-y;-webkit-overflow-scrolling:touch}
+.item{display:flex;align-items:center;justify-content:space-between;text-align:left;background:#ffffff18;border:calc(var(--u)*1.5) solid #ffffff33;border-radius:calc(var(--u)*12);padding:calc(var(--u)*7) calc(var(--u)*10);margin:calc(var(--u)*5) 0;font-size:calc(var(--u)*12)}
+.item b{font-size:calc(var(--u)*14);color:#ffd84a;display:block}
+.item .btn{font-size:calc(var(--u)*13);padding:calc(var(--u)*5) calc(var(--u)*12);margin:0 0 0 calc(var(--u)*8);white-space:nowrap}
+.item .btn:disabled{filter:grayscale(1);opacity:.5}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:calc(var(--u)*6)}
+.ec{background:#ffffff18;border:calc(var(--u)*2) solid #ffffff33;border-radius:calc(var(--u)*10);padding:calc(var(--u)*6);font-size:calc(var(--u)*11);text-align:left;line-height:1.2;min-height:calc(var(--u)*74);position:relative}
+.ec.lock{opacity:.55;text-align:center;display:flex;align-items:center;justify-content:center;font-size:calc(var(--u)*22)}
+.ec em{display:block;font-style:normal;font-weight:800;font-size:calc(var(--u)*9);margin-bottom:2px}
+.r1 .rar,.ec.r1{border-color:#9aa6b5}.ec.r2{border-color:#4aa3ff;background:#2b6ad533}.ec.r3{border-color:#ffd84a;background:#ffb60044;box-shadow:0 0 calc(var(--u)*12) #ffc83a99}
+#tip{position:absolute;left:5%;right:5%;bottom:calc(var(--u)*30);background:#fffdf0f2;color:#2a2a2a;border-radius:calc(var(--u)*16);border:calc(var(--u)*3) solid #ffd84a;
+ padding:calc(var(--u)*9) calc(var(--u)*12);font-size:calc(var(--u)*14);font-weight:700;text-align:center;display:none;box-shadow:0 calc(var(--u)*6) calc(var(--u)*14) #0007}
+#tip.show{display:block}
+</style>
+</head>
+<body>
+<div id="wrap">
+  <canvas id="c"></canvas>
+  <div id="tip"></div>
+  <div id="start" class="ov show">
+    <h1>Палыч:<br>Продержись!</h1>
+    <div class="sub" id="monday"></div>
+    <img class="portrait" src="assets/start.jpg" alt="Палыч и кот Огурец">
+    <div class="card" id="quest"></div>
+    <button class="btn" id="bStart">Начать</button>
+    <div class="row"><button class="btn alt sm" id="bShop">Магазин</button><button class="btn alt sm" id="bAlbum">Альбом отмазок</button></div>
+    <div class="hint">Свайп или тап влево/вправо · вверх: прыжок · на ПК стрелки</div>
+  </div>
+  <div id="over" class="ov">
+    <div style="font-size:calc(var(--u)*13);opacity:.85;font-weight:600">Срыв! Сила воли кончилась</div>
+    <div id="days">Счётчик дней: 0</div>
+    <div id="rec"></div>
+    <div id="excuse"></div>
+    <div id="extra"></div>
+    <div class="row"><button class="btn" id="bAgain">Ещё раз</button><button class="btn alt" id="bShare">Поделиться</button></div>
+    <div class="row"><button class="btn alt sm" id="bShop2">Магазин</button><button class="btn alt sm" id="bAlbum2">Альбом</button></div>
+  </div>
+  <div id="shop" class="ov"><h2>Магазин огурцов</h2><div id="wallet" class="sub"></div><div class="scroll" id="shopList"></div><button class="btn alt" data-back>Назад</button></div>
+  <div id="album" class="ov"><h2>Альбом отмазок</h2><div id="albumCnt" class="sub"></div><div class="scroll"><div class="grid" id="albumGrid"></div></div><button class="btn alt" data-back>Назад</button></div>
+</div>
+<script src="game.js"></script>
+</body>
+</html>
