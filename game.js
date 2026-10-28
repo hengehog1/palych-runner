@@ -59,24 +59,25 @@
     if (P.skins) for (var sk in P.skins) if (oldMap[sk]) P.costumes[oldMap[sk]] = 1;
     P.costume = (P.skin && oldMap[P.skin]) || 'classic'; delete P.skins; delete P.skin; P.v = 3;
   }
+  // магнит убран (игра становилась бесконечной): возвращаем огурцы за купленные уровни
+  if (P.up && P.up.magnet) { var mc = [40, 80, 150]; for (var ml0 = 0; ml0 < P.up.magnet; ml0++) P.cuc += mc[ml0]; P.up.magnet = 0; }
   function save() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(P)); localStorage.setItem('palych_best', String(P.best)); } catch (e) {} }
 
   var SHIELD_T = [5, 6.5, 8, 10], WILL0 = [70, 80, 90, 100];
   var UPS = [
     { id: 'shield', name: 'Взгляд Огурца', desc: 'Щит кота держится дольше', cost: [30, 60, 120], eff: function (l) { return SHIELD_T[l] + ' с'; } },
-    { id: 'will', name: 'Крепкая закалка', desc: 'Старт с большей силой воли', cost: [25, 50, 100], eff: function (l) { return WILL0[l] + '%'; } },
-    { id: 'magnet', name: 'Огуречный магнит', desc: 'Притягивает огурцы (потом и дела)', cost: [40, 80, 150], eff: function (l) { return ['нет', 'соседние полосы', 'все полосы', 'огурцы и дела'][l]; } }
+    { id: 'will', name: 'Крепкая закалка', desc: 'Старт с большей силой воли', cost: [25, 50, 100], eff: function (l) { return WILL0[l] + '%'; } }
   ];
   var COSTUMES = [
     { id: 'bomzh', art: 1, name: 'Бомж', cost: 0, bonus: 'Находит лишнее: каждый 4-й огурец двойной', b: { cucx: 1 } },
     { id: 'classic', art: 1, name: 'Классика', cost: 0, bonus: 'Майка, треники, тапки. Без бонусов, зато родной', b: {} },
     { id: 'tel', art: 1, name: 'Тельняшка и кепка', cost: 60, bonus: '+10% силы воли на старте', b: { will: 10 } },
     { id: 'welder', art: 1, name: 'Сварщик', cost: 120, bonus: 'Щит Кота Огурца дольше на 1 с', b: { shield: 1 } },
-    { id: 'fish', art: 1, name: 'Рыбак', cost: 200, bonus: 'Магнит: огурцы с соседних полос', b: { magnet: 1 } },
+    { id: 'fish', art: 1, name: 'Рыбак', cost: 200, bonus: 'Улов: каждый 3-й огурец двойной', b: { cucx: 1, cucN: 3 } },
     { id: 'dacha', art: 1, name: 'Дачник', cost: 320, bonus: 'Дела лечат силу воли сильнее (+8)', b: { heal: 8 } },
     { id: 'sport', art: 1, name: 'Спортсмен «С понедельника»', cost: 500, bonus: 'Прыжок выше и без паузы', b: { jumpH: 96, jumpCd: 0 } },
     { id: 'groom', art: 1, name: 'Жених', cost: 800, bonus: 'Near-miss даёт +3 дня', b: { near: 2 } },
-    { id: 'deputy', art: 1, name: 'Депутат', cost: 1300, bonus: 'Магнит на все полосы', b: { magnet: 2 } },
+    { id: 'deputy', art: 1, name: 'Депутат', cost: 1300, bonus: 'Связи: бонус ×2 от Зины длится 20 с', b: { x2: 20 } },
     { id: 'cosmo', art: 1, name: 'Космонавт', cost: 2000, bonus: 'Прыжок как на Луне, +15% силы воли', b: { jumpH: 130, jumpD: .85, will: 15 } }
   ];
   function costume() { for (var i = 0; i < COSTUMES.length; i++) if (COSTUMES[i].id === P.costume) return COSTUMES[i]; return COSTUMES[1]; }
@@ -502,7 +503,7 @@
       if (!S.zina && S.t >= S.zinaNext && S.shield <= 0 && S.t > 5) { S.zina = { left: 11, need: 3, got: 0, t: 0 }; sfx.zina(); S.shake = .3; banner('ПАЛЫЧ!', 'Собери 3 полезных дела, пока Зина не догнала!', 'zina'); }
       if (S.zina) {
         S.zina.t += dt; S.zina.left -= dt;
-        if (S.zina.got >= S.zina.need) { S.zina = null; S.x2 = 10; S.zinaOK++; S.zinaNext = S.t + 26 + Math.random() * 10; heal(15); banner('Зина смягчилась', 'Бонус ×2 дней на 10 секунд', 'good'); sfx.bonus(); }
+        if (S.zina.got >= S.zina.need) { S.zina = null; S.x2 = cb().x2 || 10; S.zinaOK++; S.zinaNext = S.t + 26 + Math.random() * 10; heal(15); banner('Зина смягчилась', 'Бонус ×2 дней на 10 секунд', 'good'); sfx.bonus(); }
         else if (S.zina.left <= 0) { S.zina = null; S.zinaNext = S.t + 26 + Math.random() * 10; S.fail = false; hurt(25, 'Зина догнала! −25'); }
       }
       // вехи
@@ -512,12 +513,10 @@
     }
     S.scenT -= dt * sp; if (S.scenT <= 0) { addScen(0); S.scenT = .2; }
     for (i = S.scen.length - 1; i >= 0; i--) { S.scen[i].z += dt * sp * .45; if (S.scen[i].z > 1.45) S.scen.splice(i, 1); }
-    var ml = Math.max(P.up.magnet, cb().magnet || 0);
     for (i = S.objs.length - 1; i >= 0; i--) {
       o = S.objs[i];
       if (o.fly) { o.fx += o.vx * dt; o.fy += o.vy * dt; o.vy += 600 * dt; o.rot += dt * 10; o.life -= dt; if (o.life <= 0) S.objs.splice(i, 1); continue; }
       o.z += dt * sp * .45;
-      if (play && !o.obst && ml && o.z > .4 && !o.got && ((o.kind === 'cuc' && Math.abs(o.lane - S.lane) <= (ml === 1 ? 1 : 2)) || (ml === 3 && o.kind !== 'cat' && Math.abs(o.lane - S.lane) <= 2))) o.lane = S.lane;
       if (o.lx !== undefined) o.lx += (o.lane - o.lx) * Math.min(1, dt * 9);
       if (play && o.z > .82 && o.z < 1.02 && o.lane === S.lane && !o.hit && !o.got) {
         var px = laneX(S.lane, PZ), py = yOf(PZ) - 70;
@@ -528,7 +527,7 @@
           else { launch(o); hurt(30); }
         } else {
           o.got = true;
-          if (o.kind === 'cuc') { S.cuc++; if (cb().cucx && S.cuc % 4 === 0) S.cuc++; heal(4); burst(px, py, '#7ee04a', 10); sfx.pick(); addText('+огурец', S.lane, '#b6ff7a'); if (S.cuc % 5 === 0) addDays(1, 'пять огурцов'); }
+          if (o.kind === 'cuc') { S.cuc++; if (cb().cucx && S.cuc % (cb().cucN || 4) === 0) S.cuc++; heal(2); burst(px, py, '#7ee04a', 10); sfx.pick(); addText('+огурец', S.lane, '#b6ff7a'); if (S.cuc % 5 === 0) addDays(1, 'пять огурцов'); }
           else if (o.kind === 'wrench') { S.deeds++; addDays(3, 'починил кран'); heal(15 + (cb().heal || 0)); burst(px, py, '#dfe8ee', 14, 'star'); sfx.bonus(); if (S.zina) S.zina.got++; }
           else if (o.kind === 'phone') { S.deeds++; addDays(5, 'позвонил дочке'); heal(20 + (cb().heal || 0)); burst(px, py, '#ff8ab5', 14, 'star'); sfx.bonus(); if (S.zina) S.zina.got++; }
           else if (o.kind === 'cat') { S.shield = S.shieldMax; S.usedShield = true; addText('Кот Огурец! Щит ' + S.shieldMax + ' с', S.lane, '#ffd84a', true); burst(px, py, '#ffb347', 24, 'star'); sfx.cat(); }
@@ -798,6 +797,7 @@
   $('bShare').onclick = share;
   function share() {
     var n = S.finalDays || 0, text = 'Я продержался ' + n + ' ' + dayWord(n) + '! А ты?', url = location.href.split('#')[0].split('?')[0];
+    if (window.IN_VK && window.vkBridge) { vkBridge.send('VKWebAppShowWallPostBox', { message: text + ' 🥒 Играй в приложении «Палыч: Продержись!»' }).catch(function () {}); return; }
     if (navigator.share) navigator.share({ title: 'Палыч: Продержись!', text: text, url: url }).catch(function () {});
     else { var full = text + ' ' + url; if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(full).then(function () { toast('Текст скопирован'); }, function () { prompt('Скопируй:', full); }); else prompt('Скопируй:', full); }
   }
