@@ -811,6 +811,7 @@
   function drawPalych(px, py) {
     var st = S.stepT, play = S.mode === 'play' || S.mode === 'won';
     var cs = IMG.cos[P.costume]; if (!cs || !cs.ok) cs = IMG.cos.classic; if (!cs) return; var img = cs.b[cs.b.length > 1 && play && Math.sin(st) < 0 ? 1 : 0];
+    if (play && cs.run) img = cs.run[((Math.round(st / (Math.PI / 2)) % 4) + 4) % 4];  // проход, шаг левой, проход, шаг правой
     var h = img.height * 135 / 560, w = img.width * 135 / 560, jump = S.jumpH;
     if (S.fall && S.fall.t < S.fall.dur) { drawFall(px, py, img, w, h); return; }
     var bob = play ? Math.abs(Math.sin(st)) * 7 : 0, lean = (S.lane - S.laneF) * .3, sway = play ? Math.sin(st) * .05 : 0;
@@ -1128,8 +1129,9 @@
   var fontP = (document.fonts && document.fonts.load) ? Promise.race([document.fonts.load('800 20px Rubik'), new Promise(function (r) { setTimeout(r, 1500); })]) : Promise.resolve();
   var cosLoads = COSTUMES.map(function (c) {
     if (!c.art) { IMG.cos[c.id] = { ok: false, b: [] }; return Promise.resolve(); }
-    return Promise.all([load('assets/costumes/' + c.id + '_front.png'), load('assets/costumes/' + c.id + '_back.png'), c.id === 'classic' ? load('assets/costumes/classic_back2.png') : Promise.resolve(null)]).then(function (r) {
-      IMG.cos[c.id] = { f: r[0], b: [r[1]].concat(r[2] ? [r[2]] : []), ok: !!(r[0] && r[1]) }; if (r[1]) IMG.cos[c.id].legs = splitLegs(r[1], c.id);
+    return Promise.all([load('assets/costumes/' + c.id + '_front.png'), load('assets/costumes/' + c.id + '_back.png'), c.id === 'classic' ? load('assets/costumes/classic_back2.png') : Promise.resolve(null),
+      c.id === 'classic' ? Promise.all([0, 1, 2, 3].map(function (i) { return load('assets/costumes/classic_run' + i + '.png'); })) : Promise.resolve(null)]).then(function (r) {
+      IMG.cos[c.id] = { f: r[0], b: [r[1]].concat(r[2] ? [r[2]] : []), ok: !!(r[0] && r[1]) }; if (r[3] && r[3].every(Boolean)) IMG.cos[c.id].run = r[3]; if (r[1]) IMG.cos[c.id].legs = splitLegs(r[1], c.id);
     });
   });
   Promise.all(cosLoads.concat([load('assets/cat.png').then(function (i) { IMG.cat = i; }), Promise.all([load('assets/zina_back1.png'), load('assets/zina_back2.png'), load('assets/zina_front.png')]).then(function (r) { IMG.zina = r; if (r[0]) IMG.zinaLegs = splitLegs(r[0], 'zina'); }), fontP])).then(function () { buildSprites(); heroUpdate(); });
