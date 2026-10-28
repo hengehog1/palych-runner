@@ -292,7 +292,7 @@
     var bob = Math.abs(ph) * 7, sq = 1 + Math.sin(t * 18) * .02;
     soft(ctx, x, y + 8, 60 * s, .45);
     ctx.save(); ctx.translate(x, y + 8 - bob); ctx.rotate(ph * .045 + (swing || 0)); ctx.scale(1 / sq, sq);
-    var lg = IMG.zinaLegs;
+    var lg = USE_LEGS ? IMG.zinaLegs : null;
     if (lg) { var k = h / lg.h; ctx.translate(-w * .5, -h); ctx.scale(k, k); drawLegged(lg, t * 9, .85); } else ctx.drawImage(im, -w * .5, -h, w, h);
     ctx.restore();
   }
@@ -528,7 +528,7 @@
     rrp(c, -7, -20, 14, 16, 3); fs(c, grad(c, -7, 0, 7, 0, '#5ab0ff', '#1c5fc0'), 2.2); rrp(c, -9, -24, 18, 6, 2); fs(c, '#2a78e0', 2);
     rrp(c, -12, 4, 24, 14, 1); c.fillStyle = '#ffe14a'; c.fill(); c.beginPath(); c.moveTo(2, 5); c.lineTo(-5, 12); c.lineTo(0, 12); c.lineTo(-3, 18); c.lineTo(5, 10); c.lineTo(0, 10); c.closePath(); c.fillStyle = '#e8281c'; c.fill();
     c.restore(); sparkle(c, 16, -56, 5, '#bfe8ff'); c.strokeStyle = '#bfe8ff'; c.lineWidth = 2.4; c.lineCap = 'round'; [[-24, -40, -18, -40], [-26, -32, -18, -32], [-24, -24, -18, -24]].forEach(function (l) { c.beginPath(); c.moveTo(l[0], l[1]); c.lineTo(l[2], l[3]); c.stroke(); }); }
-  var uhA = null;
+  var uhA = null, USE_LEGS = false;  // процедурные ноги выключены: владелец забраковал
   function buildFar() {
     var cs = 2, cw = 520;
     function layer(h, fn) { var c = document.createElement('canvas'); c.width = cw * cs; c.height = h * cs; var x = c.getContext('2d'); x.scale(cs, cs); fn(x); return { c: c, w: cw, h: h }; }
@@ -792,7 +792,7 @@
   // ---------- рисование ----------
   function runnerPass(cs, img, w, h, ph, amp, alpha) {
     ctx.save(); if (alpha < 1) ctx.globalAlpha = alpha;
-    if (cs.legs) { var k = h / cs.legs.h; ctx.translate(-w * .5, -h); ctx.scale(k, k); drawLegged(cs.legs, ph, amp); }
+    if (USE_LEGS && cs.legs) { var k = h / cs.legs.h; ctx.translate(-w * .5, -h); ctx.scale(k, k); drawLegged(cs.legs, ph, amp); }
     else ctx.drawImage(img, -w * .5, -h, w, h);
     ctx.restore();
   }
@@ -810,12 +810,12 @@
   }
   function drawPalych(px, py) {
     var st = S.stepT, play = S.mode === 'play' || S.mode === 'won';
-    var cs = IMG.cos[P.costume]; if (!cs || !cs.ok) cs = IMG.cos.classic; if (!cs) return; var img = cs.b[0];
+    var cs = IMG.cos[P.costume]; if (!cs || !cs.ok) cs = IMG.cos.classic; if (!cs) return; var img = cs.b[cs.b.length > 1 && play && Math.sin(st) < 0 ? 1 : 0];
     var h = img.height * 135 / 560, w = img.width * 135 / 560, jump = S.jumpH;
     if (S.fall && S.fall.t < S.fall.dur) { drawFall(px, py, img, w, h); return; }
-    var bob = play ? Math.abs(Math.sin(st)) * 4 : 0, lean = (S.lane - S.laneF) * .3, sway = play ? Math.sin(st) * .04 : 0;
+    var bob = play ? Math.abs(Math.sin(st)) * 7 : 0, lean = (S.lane - S.laneF) * .3, sway = play ? Math.sin(st) * .05 : 0;
     var stag = S.stagger > 0 ? Math.sin(S.stagger * 30) * .16 * (S.stagger / .7) : 0;
-    var sx = 1 + S.squash, sy = 1 - S.squash;
+    var sx = 1 + .035 * Math.sin(st * 2) * (play ? 1 : 0) + S.squash, sy = 1 - .035 * Math.sin(st * 2) * (play ? 1 : 0) - S.squash;
     soft(ctx, px, py, 46 * (1 - jump / 150), .5 * (1 - jump / 200));
     var dead = S.mode === 'dead' || S.mode === 'over', amp = (S.boost > 0 ? 1.4 : 1) * (play ? 1 : 0);
     var passes = (S.boost > 0 && !dead) ? [[34, .12], [17, .25], [0, 1]] : [[0, 1]];
