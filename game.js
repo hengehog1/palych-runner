@@ -386,12 +386,16 @@
   function mult() { return (S.x2 > 0 ? 2 : 1) * monMult(); }
   function curDays() { return Math.floor(S.dayAcc + S.bonus); }
   function dayWord(n) { return n % 10 === 1 && n % 100 !== 11 ? 'день' : (n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20) ? 'дня' : 'дней'); }
-  function addText(s, lane, col, big) { S.texts.push({ s: s, x: Math.max(110, Math.min(250, laneX(lane, PZ))), y: 410, life: 1.5, color: col || '#fff', big: big }); }
+  function addText(s, lane, col, big) {
+    for (var i = 0; i < S.texts.length; i++) if (S.texts[i].s === s) return;
+    if (S.texts.length >= 2) S.texts.shift();
+    S.texts.push({ s: s, x: Math.max(110, Math.min(250, laneX(lane, PZ))), y: 430, life: 1.0, color: col || '#fff', big: big });
+  }
   function addDays(n, why) { S.bonus += n * mult(); addText('+' + n * mult() + ' ' + dayWord(n * mult()) + ' · ' + why, S.lane, '#ffe66a'); }
   function burst(x, y, col, n, kind) {
     for (var i = 0; i < n; i++) S.parts.push({ x: x, y: y, vx: (Math.random() - .5) * 260, vy: -Math.random() * 240 - 40, life: .6 + Math.random() * .5, max: 1.1, col: col, r: 2 + Math.random() * 3.5, star: kind === 'star' || Math.random() < .3 });
   }
-  function banner(title, sub, kind) { S.ban = { title: title, sub: sub, life: 2.6, kind: kind || 'medal' }; }
+  function banner(title, sub, kind) { S.ban = { title: title, sub: sub, life: 1.9, kind: kind || 'medal' }; }
   function heal(n) { S.will = Math.min(100, S.will + n); }
 
   function spawn() {
@@ -451,7 +455,7 @@
   }
   function nearMiss(o) {
     S.nearCd = 1.2; S.slow = .55; S.near++; S.bonus += 1 + (cb().near || 0);
-    addText('Ох, чуть не…', S.lane, '#fff08a', true); addText('+' + (1 + (cb().near || 0)) + ' ' + dayWord(1 + (cb().near || 0)) + ' за стойкость', S.lane, '#9dff6a'); S.texts[S.texts.length - 1].y = 440; sfx.near();
+    addText('Ох, чуть не… +' + (1 + (cb().near || 0)), S.lane, '#fff08a', true); sfx.near();
     heal(3);
   }
   function jump() {
@@ -529,7 +533,7 @@
           else { launch(o); hurt(30); }
         } else {
           o.got = true;
-          if (o.kind === 'cuc') { S.cuc++; if (cb().cucx && S.cuc % (cb().cucN || 4) === 0) S.cuc++; heal(2); burst(px, py, '#7ee04a', 10); sfx.pick(); addText('+огурец', S.lane, '#b6ff7a'); if (S.cuc % 5 === 0) addDays(1, 'пять огурцов'); }
+          if (o.kind === 'cuc') { S.cuc++; if (cb().cucx && S.cuc % (cb().cucN || 4) === 0) S.cuc++; heal(2); burst(px, py, '#7ee04a', 10); sfx.pick(); if (S.cuc % 5 === 0) addDays(1, 'пять огурцов'); }
           else if (o.kind === 'wrench') { S.deeds++; addDays(3, 'починил кран'); heal(15 + (cb().heal || 0)); burst(px, py, '#dfe8ee', 14, 'star'); sfx.bonus(); if (S.zina) S.zina.got++; }
           else if (o.kind === 'phone') { S.deeds++; addDays(5, 'позвонил дочке'); heal(20 + (cb().heal || 0)); burst(px, py, '#ff8ab5', 14, 'star'); sfx.bonus(); if (S.zina) S.zina.got++; }
           else if (o.kind === 'cat') { S.shield = S.shieldMax; S.usedShield = true; addText('Кот Огурец! Щит ' + S.shieldMax + ' с', S.lane, '#ffd84a', true); burst(px, py, '#ffb347', 24, 'star'); sfx.cat(); }
@@ -553,7 +557,7 @@
     else if (t > 5.4 && t < 9.4) msg = 'Огурцы и полезные дела лечат шкалу «Силы воли». Соблазны её бьют.';
     else if (t > 10.4 && t < 14.4) msg = 'Кот Огурец даёт щит. А если кричит «ПАЛЫЧ!», хватай дела!';
     if (t > 14.5) { S.tut = 0; P.tut = 1; save(); }
-    el_.textContent = msg; el_.classList.toggle('show', !!msg);
+    el_.textContent = msg; el_.classList.toggle('show', !!msg); S.tipOn = !!msg;
   }
 
   // ---------- рисование ----------
@@ -670,15 +674,16 @@
     ctx.restore();
   }
   function drawBanner() {
-    var b = S.ban; if (!b) return; var a = Math.min(1, b.life * 2, (2.6 - b.life) * 4), pop = 1 + (1 - Math.min(1, (2.6 - b.life) * 5)) * .25;
-    ctx.save(); ctx.globalAlpha = a; ctx.translate(180, 235); ctx.scale(pop, pop);
-    var col = b.kind === 'zina' ? ['#e0405a', '#8a1230'] : (b.kind === 'good' ? ['#6adf5a', '#2a8a2a'] : ['#ffd84a', '#c9861a']);
-    rrp(ctx, -150, -42, 300, 84, 22); ctx.fillStyle = grad(ctx, 0, -42, 0, 42, col[0], col[1]); ctx.fill(); ctx.lineWidth = 4; ctx.strokeStyle = OUT; ctx.stroke();
-    if (b.kind === 'medal') { ctx.beginPath(); ctx.arc(-120, 0, 24, 0, 7); fs(ctx, grad(ctx, 0, -24, 0, 24, '#fff2a0', '#e0a010'), 3); tx(ctx, '★', -120, 1, 28, '#c9461a', null, 900); }
-    var off = b.kind === 'medal' ? 18 : 0;
-    tx(ctx, b.title, off, -14, b.kind === 'zina' ? 30 : 22, '#fff', OUT, 900);
-    var words = b.sub.split(' '), l1 = '', l2 = ''; words.forEach(function (w) { if ((l1 + ' ' + w).length < 30 && !l2) l1 += (l1 ? ' ' : '') + w; else l2 += (l2 ? ' ' : '') + w; });
-    tx(ctx, l1, off, 10, 12.5, '#fff', 'rgba(0,0,0,.5)', 600); if (l2) tx(ctx, l2, off, 26, 12.5, '#fff', 'rgba(0,0,0,.5)', 600);
+    var b = S.ban; if (!b) return; var T = 1.9, a = Math.min(1, b.life * 4, (T - b.life) * 8) * .85;
+    var y = S.tipOn ? 520 : 584, h = 46, w = 296;
+    ctx.save(); ctx.globalAlpha = a; ctx.translate(180, y);
+    var col = b.kind === 'zina' ? ['#c93a52', '#7a1030'] : (b.kind === 'good' ? ['#4fc04a', '#1f7a2a'] : (b.kind === 'lvl' ? ['#5aa6ff', '#2a58b8'] : ['#f0b92a', '#a8690f']));
+    rrp(ctx, -w / 2, -h / 2, w, h, 14); ctx.fillStyle = grad(ctx, 0, -h / 2, 0, h / 2, col[0], col[1]); ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = 'rgba(30,15,20,.75)'; ctx.stroke();
+    var off = 0;
+    if (b.kind === 'medal') { ctx.beginPath(); ctx.arc(-w / 2 + 24, 0, 14, 0, 7); fs(ctx, grad(ctx, 0, -14, 0, 14, '#fff2a0', '#e0a010'), 2); tx(ctx, '★', -w / 2 + 24, 1, 16, '#c9461a', null, 900); off = 16; }
+    var sub = b.sub || ''; if (sub.length > 46) sub = sub.slice(0, 45) + '…';
+    tx(ctx, b.title, off, sub ? -9 : 0, 15, '#fff', 'rgba(20,10,20,.7)', 800);
+    if (sub) tx(ctx, sub, off, 11, 11, '#fff', 'rgba(0,0,0,.4)', 500);
     ctx.restore();
   }
   function drawPart(p) {
@@ -714,7 +719,7 @@
     // Зина сзади
     if (S.zina) { var zp = Math.min(1, S.zina.t / 1.2), sc = .6 + (1 - S.zina.left / 11) * .4; drawZina(W / 2 + Math.sin(S.rt * 4) * 14, H + 30 - 50 * zp, sc, S.rt, 0); }
     S.parts.forEach(drawPart);
-    S.texts.forEach(function (t) { ctx.globalAlpha = Math.min(1, t.life * 2); tx(ctx, t.s, t.x, t.y, t.big ? 18 : 14.5, t.color, '#1a0d20', 800); }); ctx.globalAlpha = 1;
+    S.texts.forEach(function (t) { ctx.globalAlpha = Math.min(1, t.life * 2); tx(ctx, t.s, t.x, t.y, t.big ? 14 : 11.5, t.color, '#1a0d20', 800); }); ctx.globalAlpha = 1;
     ctx.restore();
     drawLight();
     if (S.mode === 'play' && S.will < 30) { var a = (1 - S.will / 30) * (.25 + .12 * Math.sin(S.rt * 7)); var rg = ctx.createRadialGradient(W / 2, H / 2, H * .25, W / 2, H / 2, H * .7); rg.addColorStop(0, 'rgba(200,20,20,0)'); rg.addColorStop(1, 'rgba(200,20,20,' + (a * 2) + ')'); ctx.fillStyle = rg; ctx.fillRect(0, 0, W, H); }
@@ -725,7 +730,7 @@
 
   // ---------- экраны ----------
   function hideAll() { ['start', 'over', 'shop', 'album'].forEach(function (i) { $(i).classList.remove('show'); }); $('tip').classList.remove('show'); }
-  function show(id) { hideAll(); $(id).classList.add('show'); }
+  function show(id) { hideAll(); $(id).classList.add('show'); if (id === 'start' || id === 'over') heroUpdate(); }
   var from = 'start';
   function heroUpdate() {
     var cs = IMG.cos[P.costume]; if (!cs || !cs.ok) cs = IMG.cos.classic; if (!cs) return;
@@ -777,7 +782,7 @@
     if (b.dataset.up) { var u = UPS.filter(function (x) { return x.id === b.dataset.up; })[0], l = P.up[u.id]; if (l < 3 && P.cuc >= u.cost[l]) { P.cuc -= u.cost[l]; P.up[u.id]++; sfx.bonus(); } }
     else if (b.dataset.buy) { var s = COSTUMES.filter(function (x) { return x.id === b.dataset.buy; })[0]; if (P.cuc >= s.cost) { P.cuc -= s.cost; P.costumes[s.id] = 1; P.costume = s.id; sfx.bonus(); } }
     else if (b.dataset.wear) { P.costume = b.dataset.wear; sfx.pick(); }
-    save(); renderShop();
+    save(); renderShop(); heroUpdate();
   });
   function renderAlbum() {
     $('albumCnt').textContent = 'Открыто ' + Object.keys(P.ex).length + ' из ' + EXCUSES.length + ' · редкие выпадают реже';
